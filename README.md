@@ -4,11 +4,23 @@ An ASP.NET MVC application that consumes NASA's APOD (Astronomy Picture of the D
 
 ## 🚀 Features
 
-- Fetch today's Astronomy Picture of the Day from NASA API
-- Fetch multiple APODs by date range
-- Store APOD data in SQL Server using ADO.NET
-- Display images in a responsive CSS Grid gallery
-- Avoid duplicate entries in database
+- **Fetch Data:**
+  - One-click "Fetch Today's APOD"
+  - Fetch multiple APODs by custom date range
+- **Gallery Display:**
+  - Modern responsive CSS Grid layout
+  - ✨ **Pagination** for easy browsing (12 items per page)
+  - 📅 **Date Filtering** to view specific time periods
+- **Detailed View:**
+  - 🔍 **Interactive Popup Modal** showing full details (Title, Date, Explanation, Copyright)
+  - HD Image viewing option
+- **Backend:**
+  - SQL Server storage using raw ADO.NET (required for assignment)
+  - Duplicate entry prevention logic
+- **UX Improvements:**
+  - Loading skeletons and placeholders
+  - Dismissible alert messages
+  - "Show All" button to clear filters
 
 ## 📋 Prerequisites
 
@@ -90,6 +102,7 @@ Modify if your SQL Server uses different settings.
 cd apod-mvc-app
 dotnet run
 ```
+or use `dotnet watch run` for hot reloading during development.
 
 The application will start at: **http://localhost:5200**
 
@@ -105,22 +118,22 @@ apod-mvc-app/
 │   └── ErrorViewModel.cs       # Error handling model
 ├── Repositories/
 │   ├── IApodRepository.cs      # Repository interface
-│   └── ApodRepository.cs       # ADO.NET implementation
+│   └── ApodRepository.cs       # ADO.NET implementation (SqlConnection, SqlCommand)
 ├── Services/
 │   ├── IApodService.cs         # Service interface
 │   └── ApodService.cs          # NASA API client
 ├── Views/
 │   ├── Home/
-│   │   └── Index.cshtml        # Gallery view
+│   │   └── Index.cshtml        # Gallery view with Modal & Pagination
 │   └── Shared/
 │       └── _Layout.cshtml      # Layout template
 ├── Scripts/
 │   └── CreateApodTable.sql     # Database creation script
 ├── wwwroot/
 │   └── css/
-│       └── site.css            # Responsive styles
+│       └── site.css            # Responsive styles & Modal CSS
 ├── appsettings.json            # Configuration (no secrets)
-├── Program.cs                  # Application entry point
+├── Program.cs                  # Application entry point & DI container
 └── README.md                   # This file
 ```
 
@@ -151,10 +164,12 @@ CREATE TABLE Apod (
 
 ## 📝 Usage
 
-1. Open the application in your browser
-2. Click **"Fetch Today's APOD"** to get today's astronomy picture
-3. Use the date range picker to fetch multiple APODs
-4. All fetched images are saved to the database and displayed in the gallery
+1. **Browse Gallery:** Use pagination controls at the bottom to navigate through images.
+2. **View Details:** Click on any image to open a popup with full description and HD link.
+3. **Fetch New Data:**
+   - Click **"Fetch Today's APOD"** for the latest image
+   - Use the date range picker to fetch a batch of past images
+4. **Filter:** After fetching storage, click "Show All" to reset filters.
 
 ## 📄 License
 

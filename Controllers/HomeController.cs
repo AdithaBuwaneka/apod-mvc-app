@@ -17,11 +17,39 @@ public class HomeController : Controller
         _apodRepository = apodRepository;
     }
 
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(string? startDate = null, string? endDate = null, int page = 1)
     {
+        const int PageSize = 12; // Items per page
+        
         // Get all saved APODs from database
         var apods = await _apodRepository.GetAllApodsAsync();
-        return View(apods);
+        
+        // Filter by date range if provided
+        if (!string.IsNullOrEmpty(startDate) && !string.IsNullOrEmpty(endDate))
+        {
+            var start = DateTime.Parse(startDate);
+            var end = DateTime.Parse(endDate);
+            apods = apods.Where(a => {
+                var date = DateTime.Parse(a.Date);
+                return date >= start && date <= end;
+            }).ToList();
+            
+            ViewBag.FilteredRange = $"{startDate} to {endDate}";
+        }
+        
+        // Pagination logic
+        int totalItems = apods.Count;
+        int totalPages = (int)Math.Ceiling(totalItems / (double)PageSize);
+        page = Math.Max(1, Math.Min(page, totalPages)); // Ensure page is within valid range
+        
+        var pagedApods = apods.Skip((page - 1) * PageSize).Take(PageSize).ToList();
+        
+        ViewBag.CurrentPage = page;
+        ViewBag.TotalPages = totalPages;
+        ViewBag.StartDate = startDate;
+        ViewBag.EndDate = endDate;
+        
+        return View(pagedApods);
     }
 
     [HttpPost]
@@ -43,6 +71,10 @@ public class HomeController : Controller
             {
                 TempData["Message"] = "Today's APOD already exists in database.";
             }
+            
+            // Redirect with today's date filter
+            var today = DateTime.Now.ToString("yyyy-MM-dd");
+            return RedirectToAction(nameof(Index), new { startDate = today, endDate = today });
         }
         else
         {
@@ -82,7 +114,12 @@ public class HomeController : Controller
         }
 
         TempData["Message"] = $"Saved {saved} new APOD(s) out of {apods.Count} fetched.";
-        return RedirectToAction(nameof(Index));
+        
+        // Redirect with date filter to show only fetched range
+        return RedirectToAction(nameof(Index), new { 
+            startDate = startDate.ToString("yyyy-MM-dd"), 
+            endDate = endDate.ToString("yyyy-MM-dd") 
+        });
     }
 
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
