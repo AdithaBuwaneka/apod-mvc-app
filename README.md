@@ -23,7 +23,7 @@ Before running this project, ensure you have:
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/apod-mvc-app.git
+git clone https://github.com/AdithaBuwaneka/apod-mvc-app.git
 cd apod-mvc-app
 ```
 
