@@ -1,19 +1,88 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using ApodMvcApp.Models;
+using ApodMvcApp.Services;
+using ApodMvcApp.Repositories;
 
 namespace ApodMvcApp.Controllers;
 
 public class HomeController : Controller
 {
-    public IActionResult Index()
+    private readonly IApodService _apodService;
+    private readonly IApodRepository _apodRepository;
+
+    public HomeController(IApodService apodService, IApodRepository apodRepository)
     {
-        return View();
+        _apodService = apodService;
+        _apodRepository = apodRepository;
     }
 
-    public IActionResult Privacy()
+    public async Task<IActionResult> Index()
     {
-        return View();
+        // Get all saved APODs from database
+        var apods = await _apodRepository.GetAllApodsAsync();
+        return View(apods);
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> FetchToday()
+    {
+        // Fetch today's APOD from NASA API
+        var apod = await _apodService.GetTodayApodAsync();
+        
+        if (apod != null)
+        {
+            // Check if already exists
+            var exists = await _apodRepository.ExistsAsync(apod.Date);
+            if (!exists)
+            {
+                await _apodRepository.InsertApodAsync(apod);
+                TempData["Message"] = $"Successfully saved: {apod.Title}";
+            }
+            else
+            {
+                TempData["Message"] = "Today's APOD already exists in database.";
+            }
+        }
+        else
+        {
+            TempData["Error"] = "Failed to fetch APOD from NASA API.";
+        }
+
+        return RedirectToAction(nameof(Index));
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> FetchRange(DateTime startDate, DateTime endDate)
+    {
+        if (startDate > endDate)
+        {
+            TempData["Error"] = "Start date must be before end date.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        // Limit range to 30 days to avoid API limits
+        if ((endDate - startDate).Days > 30)
+        {
+            TempData["Error"] = "Date range cannot exceed 30 days.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        var apods = await _apodService.GetApodsByDateRangeAsync(startDate, endDate);
+        int saved = 0;
+
+        foreach (var apod in apods)
+        {
+            var exists = await _apodRepository.ExistsAsync(apod.Date);
+            if (!exists)
+            {
+                await _apodRepository.InsertApodAsync(apod);
+                saved++;
+            }
+        }
+
+        TempData["Message"] = $"Saved {saved} new APOD(s) out of {apods.Count} fetched.";
+        return RedirectToAction(nameof(Index));
     }
 
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
