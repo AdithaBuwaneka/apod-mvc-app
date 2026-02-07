@@ -249,4 +249,16 @@ footer {
     .gallery {
         grid-template-columns: 1fr;
     }
+
+    .fetch-controls {
+        flex-direction: column;
+    }
+
+    .fetch-form.fetch-range {
+        flex-wrap: wrap;
+    }
+
+    .page-header h1 {
+        font-size: 1.5rem;
+    }
 }
