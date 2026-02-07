@@ -11,11 +11,17 @@
 <!-- Messages -->
 @if (TempData["Message"] != null)
 {
-    <div class="alert alert-success">@TempData["Message"]</div>
+    <div class="alert alert-success">
+        <span>@TempData["Message"]</span>
+        <button class="alert-close" onclick="this.parentElement.remove()">×</button>
+    </div>
 }
 @if (TempData["Error"] != null)
 {
-    <div class="alert alert-error">@TempData["Error"]</div>
+    <div class="alert alert-error">
+        <span>@TempData["Error"]</span>
+        <button class="alert-close" onclick="this.parentElement.remove()">×</button>
+    </div>
 }
 
 <!-- Fetch Controls -->
@@ -31,30 +37,104 @@
         <input type="date" id="endDate" name="endDate" required />
         <button type="submit" class="btn btn-secondary">Fetch Range</button>
     </form>
+    
+    <a href="/" class="btn btn-secondary">Show All</a>
 </div>
 
-<!-- Gallery -->
+<!-- Gallery - Only Images -->
 @if (Model != null && Model.Count > 0)
 {
+    var imageApods = Model.Where(a => a.MediaType == "image").ToList();
+    
     <div class="gallery">
-        @foreach (var apod in Model)
+        @for (int i = 0; i < imageApods.Count; i++)
         {
-            <div class="gallery-item">
-                @if (apod.MediaType == "image")
-                {
-                    <img src="@apod.Url" alt="@apod.Title" loading="lazy" />
-                }
-                else
-                {
-                    <div class="video-placeholder">
-                        <span>🎬 Video</span>
-                    </div>
-                }
+            var apod = imageApods[i];
+            <div class="gallery-item" onclick="openModal(@i)">
+                <img src="@apod.Url" alt="@apod.Title" loading="lazy" />
                 <div class="title">@apod.Title</div>
                 <div class="date">@apod.Date</div>
             </div>
         }
     </div>
+
+    <!-- Pagination Controls -->
+    @if (ViewBag.TotalPages > 1)
+    {
+        <div class="pagination">
+            @if (ViewBag.CurrentPage > 1)
+            {
+                <a href="@Url.Action("Index", new { page = ViewBag.CurrentPage - 1, startDate = ViewBag.StartDate, endDate = ViewBag.EndDate })" class="btn btn-secondary">&laquo; Prev</a>
+            }
+            
+            @for (int p = 1; p <= ViewBag.TotalPages; p++)
+            {
+                if (p == ViewBag.CurrentPage)
+                {
+                    <span class="btn btn-primary active">@p</span>
+                }
+                else
+                {
+                    <a href="@Url.Action("Index", new { page = p, startDate = ViewBag.StartDate, endDate = ViewBag.EndDate })" class="btn btn-secondary">@p</a>
+                }
+            }
+            
+            @if (ViewBag.CurrentPage < ViewBag.TotalPages)
+            {
+                <a href="@Url.Action("Index", new { page = ViewBag.CurrentPage + 1, startDate = ViewBag.StartDate, endDate = ViewBag.EndDate })" class="btn btn-secondary">Next &raquo;</a>
+            }
+        </div>
+    }
+
+    <!-- Modal Popup -->
+    <div id="apodModal" class="modal" onclick="if(event.target===this)closeModal()">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeModal()">&times;</span>
+            <div id="modalBody"></div>
+        </div>
+    </div>
+
+    <script>
+        const apodData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(imageApods));
+        
+        function openModal(index) {
+            const apod = apodData[index];
+            if (!apod) return;
+            
+            const modal = document.getElementById('apodModal');
+            const body = document.getElementById('modalBody');
+            
+            body.innerHTML = `
+                <div class="modal-image">
+                    <img src="${apod.url}" alt="${apod.title}" />
+                </div>
+                <div class="modal-details">
+                    <h2>${apod.title}</h2>
+                    <div class="modal-meta">
+                        <span class="meta-item">📅 <strong>Date:</strong> ${apod.date}</span>
+                        ${apod.copyright ? `<span class="meta-item">📷 <strong>Copyright:</strong> ${apod.copyright}</span>` : ''}
+                    </div>
+                    <div class="modal-explanation">
+                        <h3>Explanation</h3>
+                        <p>${apod.explanation}</p>
+                    </div>
+                    ${apod.hdUrl ? `<div class="modal-actions"><a href="${apod.hdUrl}" target="_blank" class="btn btn-primary">🔍 View HD Image</a></div>` : ''}
+                </div>
+            `;
+            
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closeModal() {
+            document.getElementById('apodModal').style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+        
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeModal();
+        });
+    </script>
 }
 else
 {
