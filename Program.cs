@@ -9,10 +9,8 @@ builder.Services.AddControllersWithViews();
 // Register HttpClient for API calls
 builder.Services.AddHttpClient<IApodService, ApodService>();
 
-// Register Repository with connection string
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
-    ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-builder.Services.AddScoped<IApodRepository>(provider => new ApodRepository(connectionString));
+// Register Repository (uses IConfiguration internally)
+builder.Services.AddScoped<IApodRepository, ApodRepository>();
 
 var app = builder.Build();
 
