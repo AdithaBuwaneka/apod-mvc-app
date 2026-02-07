@@ -6,6 +6,9 @@
 # dotenv files
 .env
 
+# Client-side libraries (not needed - using plain CSS)
+wwwroot/lib/
+
 # User-specific files
 *.rsuser
 *.suo
