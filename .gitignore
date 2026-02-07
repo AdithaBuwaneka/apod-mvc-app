@@ -9,6 +9,9 @@
 # Client-side libraries (not needed - using plain CSS)
 wwwroot/lib/
 
+# Development settings with secrets (API keys)
+appsettings.Development.json
+
 # User-specific files
 *.rsuser
 *.suo
