@@ -1,7 +1,18 @@
+using ApodMvcApp.Repositories;
+using ApodMvcApp.Services;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+
+// Register HttpClient for API calls
+builder.Services.AddHttpClient<IApodService, ApodService>();
+
+// Register Repository with connection string
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
+    ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+builder.Services.AddScoped<IApodRepository>(provider => new ApodRepository(connectionString));
 
 var app = builder.Build();
 
