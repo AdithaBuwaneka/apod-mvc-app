@@ -1,8 +1,65 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿@model List<ApodMvcApp.DTOs.ApodDto>
+@{
+    ViewData["Title"] = "APOD Gallery";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="page-header">
+    <h1>Astronomy Picture of the Day Gallery</h1>
+    <p>Explore NASA's stunning astronomy pictures</p>
 </div>
+
+<!-- Messages -->
+@if (TempData["Message"] != null)
+{
+    <div class="alert alert-success">@TempData["Message"]</div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-error">@TempData["Error"]</div>
+}
+
+<!-- Fetch Controls -->
+<div class="fetch-controls">
+    <form asp-action="FetchToday" method="post" class="fetch-form">
+        <button type="submit" class="btn btn-primary">Fetch Today's APOD</button>
+    </form>
+    
+    <form asp-action="FetchRange" method="post" class="fetch-form fetch-range">
+        <label for="startDate">From:</label>
+        <input type="date" id="startDate" name="startDate" required />
+        <label for="endDate">To:</label>
+        <input type="date" id="endDate" name="endDate" required />
+        <button type="submit" class="btn btn-secondary">Fetch Range</button>
+    </form>
+</div>
+
+<!-- Gallery -->
+@if (Model != null && Model.Count > 0)
+{
+    <div class="gallery">
+        @foreach (var apod in Model)
+        {
+            <div class="gallery-item">
+                @if (apod.MediaType == "image")
+                {
+                    <img src="@apod.Url" alt="@apod.Title" loading="lazy" />
+                }
+                else
+                {
+                    <div class="video-placeholder">
+                        <span>🎬 Video</span>
+                    </div>
+                }
+                <div class="title">@apod.Title</div>
+                <div class="date">@apod.Date</div>
+            </div>
+        }
+    </div>
+}
+else
+{
+    <div class="empty-state">
+        <h2>No images yet</h2>
+        <p>Click "Fetch Today's APOD" to get started!</p>
+    </div>
+}
